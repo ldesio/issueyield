@@ -69,17 +69,6 @@ program define yield, rclass
 		local f = `f' + (r(sum_w)/2) / `all'
 		*/
 		
-		
-		
-		quietly sum `credvar' if `target_group'==1 `wtexp'
-		local cred = r(sum_w)*r(mean)/`all' // r(sum_w) / `all'
-		
-		
-		quietly sum `credvar' if `target_group'==1 & `partyexp' `wtexp'
-		local intcred = r(sum_w)*r(mean) / `all'
-		
-		
-		
 		// OLD VERSION of yield (robustness check): THE SAME
 		local x = `f' - `p' * `i'
 		local y = `i' - `p'
@@ -99,6 +88,12 @@ program define yield, rclass
 		return scalar f = `f'
 		return scalar within = `within'
 		return scalar yield = (`f' - `i'*`p')/(`p'*(1-`p')) + (`i'-`p')/(1-`p')
+
+		quietly sum `credvar' if `target_group'==1 `wtexp'
+		local cred = r(sum_w)*r(mean)/`all' // r(sum_w) / `all'
+		
+		quietly sum `credvar' if `target_group'==1 & `partyexp' `wtexp'
+		local intcred = r(sum_w)*r(mean) / `all'
 		
 		return scalar cred = `cred'
 		return scalar intcred = `intcred'
