@@ -90,28 +90,35 @@ program define yield, rclass
 		return scalar yield = (`f' - `i'*`p')/(`p'*(1-`p')) + (`i'-`p')/(1-`p')
 
 		quietly sum `credvar' if `target_group'==1 `wtexp'
-		local cred = r(sum_w)*r(mean)/`all' // r(sum_w) / `all'
+		local cred_abs = r(sum_w)*r(mean)/`all' // r(sum_w) / `all'
 		
 		quietly sum `credvar' if `target_group'==1 & `partyexp' `wtexp'
-		local intcred = r(sum_w)*r(mean) / `all'
+		local intcred_abs = r(sum_w)*r(mean) / `all'
+
+		// cred and intcred are *relative* measures
+		// (internal to issue supporters, party supporters)
+		// (see De Sio and Weber 2020)
+		local cred = `cred_abs' / `i'
+		local intcred = `intcred_abs' / (`p' * `within')
 		
 		return scalar cred = `cred'
 		return scalar intcred = `intcred'
-		
-		local credrel = `cred' / `i'
-		local intcredrel = `intcred' / (`p' * `within')
+
+		// absolute credibilities returned for other uses
+		return scalar cred_abs = `cred_abs'
+		return scalar intcred_abs = `intcred_abs'
 		
 		// difference between observed and expected support: allows to detect side associated with party support
 		local d = (`f' - `i'*`p')
 
 		// first term: same formula, but credibility gets calculated on the *remainder* of party supporters
 		// 	if the *opposite* side is associated with party support
-		if (`d'>=0) local first_term = ((`f' - `i'*`p')*`intcredrel')/(`p'*(1-`p'))
-		if (`d'<0) local first_term = ((`f' - `i'*`p')*(1-`intcredrel'))/(`p'*(1-`p'))
+		if (`d'>=0) local first_term = ((`f' - `i'*`p')*`intcred')/(`p'*(1-`p'))
+		if (`d'<0) local first_term = ((`f' - `i'*`p')*(1-`intcred'))/(`p'*(1-`p'))
 		
 
 		// second term: same formula for both cases
-		local second_term = ((`i'-`p')*`credrel')/(1-`p')
+		local second_term = ((`i'-`p')*`cred')/(1-`p')
 
 		return scalar credweighted_yield = `first_term' + `second_term'
 		
