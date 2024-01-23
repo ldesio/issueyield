@@ -1,5 +1,5 @@
-capture program drop yield
-program define yield, rclass	
+capture program drop issueyield
+program define issueyield, rclass	
 	
 	// adapted from iyield.ado
 	
@@ -33,6 +33,15 @@ program define yield, rclass
 	}
 	local goallabel = substr("`goallabel'",4,.)
 
+	di ""
+	di "*** Issue Yield index calculation ***"
+	di ""
+	di "Issue variable: " _column(40) "`varlist' (`goallabel')"
+	di "Party expression:" _column(40) "`partyexp'"
+	
+	if ("`wtexp'"!="") di "Using weights: " _column(40) "`wtexp'"
+	if ("`credvar'"!="") di "Party credibility variable:" _column(40) "`credvar'"
+	
 	// this is correct
 	// tab `target_group'
 	
@@ -57,7 +66,7 @@ program define yield, rclass
 		
 		local within = `f' / `p'
 		if (`numvars'==1) {
-			sum `varlist' if `partyexp' `wtexp'
+			qui sum `varlist' if `partyexp' `wtexp'
 			local within = r(mean)
 		}
 		
@@ -89,6 +98,14 @@ program define yield, rclass
 		return scalar within = `within'
 		return scalar yield = (`f' - `i'*`p')/(`p'*(1-`p')) + (`i'-`p')/(1-`p')
 
+		di ""
+		di "Party size (p):" _column(40) %3.2f `p'
+		di "Issue goal general support (i):" _column(40) %3.2f `i'
+		di "Joint party-goal support (f):" _column(40) %3.2f `f'
+		local yield = (`f' - `i'*`p')/(`p'*(1-`p')) + (`i'-`p')/(1-`p')
+		di "* Issue yield:" _column(40) %3.2f `yield'
+		
+		
 		quietly sum `credvar' if `target_group'==1 `wtexp'
 		local cred_abs = r(sum_w)*r(mean)/`all' // r(sum_w) / `all'
 		
@@ -121,8 +138,14 @@ program define yield, rclass
 		local second_term = ((`i'-`p')*`cred')/(1-`p')
 
 		return scalar credweighted_yield = `first_term' + `second_term'
+		local credweighted_yield = `first_term' + `second_term'
 		
-		
+		if ("`credvar'"!="") {
+			di ""
+			di "Party credibility (cred):" _column(40) %3.2f `cred'
+			di "Party credibility in *f* set (intcred):" _column(40) %3.2f `intcred'
+			di "* Credibility-weighted issue yield:" _column(40) %3.2f `credweighted_yield'
+		}
 		// return scalar credweighted_yield = (`f' - `i'*`p')*`intcred'/(`p'*(1-`p')) + (`i'-`p')*`cred'/(1-`p')
 		
 		// with "rel" versions, much more meaningful and almost equal to old reports
