@@ -37,7 +37,7 @@ program define issueyield, rclass
 	di "*** Issue Yield index calculation ***"
 	di ""
 	di "Issue variable: " _column(40) "`varlist' (`goallabel')"
-	di "Party expression:" _column(40) "`partyexp'"
+	di "Party expression:" _column(40) `"`partyexp'"'
 	
 	if ("`wtexp'"!="") di "Using weights: " _column(40) "`wtexp'"
 	if ("`credvar'"!="") di "Party credibility variable:" _column(40) "`credvar'"
@@ -124,6 +124,15 @@ program define issueyield, rclass
 		// absolute credibilities returned for other uses
 		return scalar cred_abs = `cred_abs'
 		return scalar intcred_abs = `intcred_abs'
+
+		/* De Sio/ Weber 2020, footnote 11:
+		
+		11. Note that intcred has to be replaced with 1-intcred if (f-ip) is lower than 0
+			(i.e., policy support within the party is lower than in the whole sample).
+			And, in the same way, cred would need to be replaced with 1-cred if (i-p)
+			is lower than 0 (i.e. party support is higher than issue support), but this
+			does not occur in our data.
+		*/
 		
 		// difference between observed and expected support: allows to detect side associated with party support
 		local d = (`f' - `i'*`p')
@@ -133,9 +142,8 @@ program define issueyield, rclass
 		if (`d'>=0) local first_term = ((`f' - `i'*`p')*`intcred')/(`p'*(1-`p'))
 		if (`d'<0) local first_term = ((`f' - `i'*`p')*(1-`intcred'))/(`p'*(1-`p'))
 		
-
-		// second term: same formula for both cases
-		local second_term = ((`i'-`p')*`cred')/(1-`p')
+		if (`i' > `p') local second_term = ((`i'-`p')*`cred')/(1-`p')
+		if (`p' > `i') local second_term = ((`i'-`p')*(1-`cred'))/(1-`p')
 
 		return scalar credweighted_yield = `first_term' + `second_term'
 		local credweighted_yield = `first_term' + `second_term'
