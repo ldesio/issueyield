@@ -1,5 +1,6 @@
 # issueyield
 Stata ADO file for calculating the [Issue Yield index](https://en.wikipedia.org/wiki/Issue_Yield) (De Sio and Weber 2014, 2020) on a survey dataset. For a particular political party, the index summarizes the electoral risk/opportunity combination associated with a particular issue goal (risks of internal division vs opportunity for electoral expansion among non-supporters).
+Besides text output, the program also returns a full set of scalars to ease automation.
 
 # Usage
 ```
